@@ -7,68 +7,49 @@ Original file is located at
     https://colab.research.google.com/drive/1MME6BU1OCGhvCBA2QqOTv572rfK9_uN0
 """
 
-import os
-import pickle
 import streamlit as st
+import pickle
 import pandas as pd
-import numpy as np
-import warnings
+import os
+
+# Get the current directory
+BASE_DIR = os.getcwd()
+
+# Load the necessary pickle files
+try:
+    df_new = pickle.load(open(os.path.join(BASE_DIR, 'df_new.pkl'), 'rb'))
+    df = pickle.load(open(os.path.join(BASE_DIR, 'df.pkl'), 'rb'))
+    similarity_scores = pickle.load(open(os.path.join(BASE_DIR, 'similarity_scores.pkl'), 'rb'))
+except FileNotFoundError as e:
+    st.error(f"❌ Error: {e}. Please check if the required files are uploaded.")
+    st.stop()
+
+# Streamlit UI
+st.title("📚 Book Recommendation System")
+
+# User Input
+selected_book = st.selectbox("Choose a book", df['Title'].values)
+
+# Function to Recommend Books
+def recommend_books(book_name, df, similarity_scores):
+    if book_name not in df['Title'].values:
+        return ["Book not found. Please try another one."]
+    
+    book_index = df[df['Title'] == book_name].index[0]
+    distances = similarity_scores[book_index]
+    recommended_indices = sorted(list(enumerate(distances)), key=lambda x: x[1], reverse=True)[1:6]
+    
+    recommended_books = [df.iloc[i[0]]['Title'] for i in recommended_indices]
+    return recommended_books
+
+# Get Recommendations
+if st.button("Recommend"):
+    recommendations = recommend_books(selected_book, df, similarity_scores)
+    st.subheader("📖 Recommended Books:")
+    for book in recommendations:
+        st.write(f"📌 {book}")
 
 
-warnings.filterwarnings('ignore')
-
-# Set the correct folder path
-BASE_DIR = r"C:\Users\Croma\Desktop\book recommendation p457"
-
-st.title('Book Recommendation System')  # Adding title
-
-# Load pickle files with absolute paths
-df_new = pickle.load(open(os.path.join(BASE_DIR, 'df_new.pkl'), 'rb'))
-df = pickle.load(open(os.path.join(BASE_DIR, 'df.pkl'), 'rb'))
-similarity_scores = pickle.load(open(os.path.join(BASE_DIR, 'similarity_scores.pkl'), 'rb'))
-
-df1_new1 = pickle.load(open(os.path.join(BASE_DIR, 'df1_new1.pkl'), 'rb'))
-df2_new1 = pickle.load(open(os.path.join(BASE_DIR, 'df2_new1.pkl'), 'rb'))
-df3_new1 = pickle.load(open(os.path.join(BASE_DIR, 'df3_new1.pkl'), 'rb'))
-df4_new1 = pickle.load(open(os.path.join(BASE_DIR, 'df4_new1.pkl'), 'rb'))
-
-# Function to recommend books
-def recommend(book_name):
-    index = np.where(df_new.index == book_name)[0][0]
-    similar_items = sorted(list(enumerate(similarity_scores[index])),
-                           key=lambda x: x[1], reverse=True)[1:6]
-
-    data = []
-    for i in similar_items:
-        temp_df = df[df['Book'] == df_new.index[i[0]]]
-        item = [
-            temp_df.drop_duplicates('Book')['Book'].values[0],
-            temp_df.drop_duplicates('Book')['Author'].values[0],
-            temp_df.drop_duplicates('Book')['Genre'].values[0],
-            temp_df.drop_duplicates('Book')['Award Name'].values[0]
-        ]
-        data.append(item)
-
-    return pd.DataFrame(data, columns=['Book', 'Author', 'Genre', 'Award Name'])
-
-# Dropdown for book selection
-book_list = df_new.index.values
-selected_book = st.selectbox('Type or select a book from the dropdown', book_list)
-
-# Show recommendations
-if st.button('Show Recommendation'):
-    recommended_books = recommend(selected_book)
-    st.dataframe(recommended_books)
-
-# Displaying various book lists
-st.header("Top 10 popular books based on ratings")
-st.dataframe(df1_new1)
-
-st.header("Top 10 books offering maximum discount")
-st.dataframe(df2_new1)
-
-st.header("Top 10 books at least price")
-st.dataframe(df3_new1)
 
 st.header("Top 10 books by maximum checkouts")
 st.dataframe(df4_new1)
