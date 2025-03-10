@@ -14,8 +14,8 @@ def load_pkl_file(filename):
         return None
 
 # Load files safely
-df_new = joblib.load('df_new.pkl')
-similarity_scores = joblib.load("similarity_scores.pkl")
+df_new = load_pkl_file('df_new.pkl')
+similarity_scores = load_pkl_file("similarity_scores.pkl")
 
 # Stop execution if files are missing
 if df_new is None or similarity_scores is None:
