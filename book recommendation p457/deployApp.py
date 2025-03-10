@@ -1,3 +1,6 @@
+pip install joblib
+
+
 import os
 import joblib  # Import joblib for loading .pkl files
 import streamlit as st
